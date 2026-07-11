@@ -4,6 +4,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Matter from 'matter-js'
 import {
+  AtSign,
   CalendarDays,
   Camera,
   CheckCircle2,
@@ -281,28 +282,28 @@ function DawatEnvelopeGate({ onOpening, onOpened, reducedMotion, guestName }) {
     setOpening(true)
     onOpening()
     const compact = window.matchMedia('(max-width: 640px)').matches
-    completionTimerRef.current = window.setTimeout(finishOpening, reducedMotion ? 2100 : 4500)
+    completionTimerRef.current = window.setTimeout(finishOpening, reducedMotion ? 1500 : 3000)
 
     if (reducedMotion) {
       gsap.set(promptRef.current, { opacity: 0 })
       gsap.set(sealRef.current, { opacity: 0 })
       gsap.set(flapRef.current, { rotateX: -150, y: -10, transformOrigin: '50% 0%' })
       gsap.set(cardRef.current, { y: compact ? '-20vh' : '-27vh', opacity: 1, scale: 1 })
-      gsap.to(overlayRef.current, { opacity: 0, delay: 1.6, duration: 0.24, onComplete: finishOpening })
+      gsap.to(overlayRef.current, { opacity: 0, delay: 1.15, duration: 0.22, onComplete: finishOpening })
       return
     }
 
     gsap
       .timeline({ defaults: { ease: 'power3.inOut' }, onComplete: finishOpening })
-      .to(promptRef.current, { opacity: 0, y: 8, duration: 0.3 }, 0)
-      .to(sealRef.current, { scale: 0.88, opacity: 0, duration: 0.38, ease: 'power2.out' }, 0.08)
-      .to(flapRef.current, { rotateX: -150, y: -12, transformOrigin: '50% 0%', duration: 0.85 }, 0.3)
-      .to(pocketRef.current, { y: 10, filter: 'brightness(1.08)', duration: 0.62 }, 0.4)
-      .to(glowRef.current, { opacity: 0.55, scale: 1.18, duration: 0.8 }, 0.42)
-      .to(cardRef.current, { y: compact ? '-20vh' : '-27vh', opacity: 1, scale: 1, duration: 1.05, ease: 'power3.out' }, 0.62)
-      .to({}, { duration: 1.65 })
-      .to(stageRef.current, { y: -18, scale: 1.025, duration: 0.5, ease: 'power2.in' })
-      .to(overlayRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.72, ease: 'power2.inOut' }, '-=0.45')
+      .to(promptRef.current, { opacity: 0, y: 8, duration: 0.22 }, 0)
+      .to(sealRef.current, { scale: 0.9, opacity: 0, duration: 0.28, ease: 'power2.out' }, 0.05)
+      .to(flapRef.current, { rotateX: -150, y: -12, transformOrigin: '50% 0%', duration: 0.62 }, 0.18)
+      .to(pocketRef.current, { y: 10, filter: 'brightness(1.08)', duration: 0.42 }, 0.25)
+      .to(glowRef.current, { opacity: 0.55, scale: 1.18, duration: 0.55 }, 0.3)
+      .to(cardRef.current, { y: compact ? '-20vh' : '-27vh', opacity: 1, scale: 1, duration: 0.75, ease: 'power3.out' }, 0.42)
+      .to({}, { duration: 0.95 })
+      .to(stageRef.current, { y: -18, scale: 1.025, duration: 0.35, ease: 'power2.in' })
+      .to(overlayRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.55, ease: 'power2.inOut' }, '-=0.3')
   }
 
   return (
@@ -1026,7 +1027,7 @@ function ConfirmInvitation({ guestName }) {
       <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-10">
         <Reveal>
           <p className="text-xs font-bold uppercase tracking-[0.42em] text-rouge">Confirm invitation</p>
-          <AnimatedWords text="Tell the hosts your family count." className="mt-4 font-display text-4xl font-semibold leading-none sm:text-7xl" />
+          <AnimatedWords text="Tell the hosts your family count." immediate className="mt-4 font-display text-4xl font-semibold leading-none sm:text-7xl" />
           <p className="mt-5 max-w-xl text-base leading-7 text-[#5b3430] sm:mt-6 sm:text-lg sm:leading-8">A quick reply helps the family arrange seating, dinner, and a proper welcome at each rasam.</p>
           <div className="mt-8 hidden gap-3 text-sm font-semibold text-[#4a2825] sm:grid">
             <InfoLine icon={UsersRound} text="One response for the whole household." />
@@ -1063,6 +1064,31 @@ function Field({ label, name, type, placeholder, defaultValue }) {
 
 function InfoLine({ icon: Icon, text }) {
   return <div className="flex items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#8c1323]/10 text-[#8c1323]"><Icon className="h-5 w-5" strokeWidth={1.7} /></span><span>{text}</span></div>
+}
+
+function ConceptFooter({ year }) {
+  return (
+    <footer data-particle="glitter" className="relative isolate overflow-hidden border-t border-[#f6d88b]/28 bg-[#071423] text-parchment">
+      <img src={media.images.doorway} alt="Sarbuland and Rabiya beneath the Khan Haveli lights" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover object-center opacity-45" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,20,35,.97)_0%,rgba(7,20,35,.9)_42%,rgba(7,20,35,.42)_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(7,20,35,.96)_0%,transparent_46%,rgba(7,20,35,.36)_100%)]" />
+      <div className="relative mx-auto flex min-h-[430px] max-w-7xl flex-col justify-end px-4 py-12 sm:min-h-[520px] sm:py-16">
+        <Reveal className="max-w-2xl">
+          <p className="text-xs font-bold uppercase tracking-[0.38em] text-[#f6d88b]">A House of Saima concept</p>
+          <h2 className="mt-4 text-balance font-display text-5xl font-semibold leading-[0.94] sm:text-7xl">Your story could be the next unforgettable dawat.</h2>
+          <p className="mt-6 max-w-xl text-base leading-7 text-[#fff8ea]/82 sm:text-lg sm:leading-8">This fictional wedding invitation inspired by the drama <em>Zanjeerain</em> was imagined by House of Saima. We create custom digital dawats around your names, faces, family, and celebrations.</p>
+          <a href="https://www.instagram.com/houseofsaima/" target="_blank" rel="noreferrer" className="mt-7 inline-flex min-h-12 items-center gap-3 rounded-[6px] border border-[#f6d88b]/48 bg-[#fff8ea] px-5 py-3 text-sm font-bold uppercase tracking-[0.14em] text-[#2c0b12] shadow-[0_18px_50px_rgba(0,0,0,.28)] transition hover:border-[#f6d88b] hover:bg-[#f6d88b] focus:outline-none focus:ring-4 focus:ring-[#f6d88b]/20">
+            <AtSign className="h-5 w-5" />
+            Get yours on Instagram
+          </a>
+        </Reveal>
+        <div className="mt-12 flex flex-col gap-2 border-t border-[#f6d88b]/18 pt-5 text-xs leading-5 text-[#fff8ea]/58 sm:flex-row sm:items-center sm:justify-between">
+          <p>House of Saima · Custom digital wedding invitations · {year}</p>
+          <p>Unofficial fan concept. Not affiliated with HUM TV.</p>
+        </div>
+      </div>
+    </footer>
+  )
 }
 
 function MotionToggle({ disabled, onToggle }) {
@@ -1149,7 +1175,7 @@ function App() {
             <EventDetails />
             <CountdownHourglass />
             <ConfirmInvitation guestName={guestName} />
-            <footer className="bg-[#071423] px-4 py-10 text-center text-sm text-[#fff8ea]/64"><p className="font-display text-3xl text-[#f6d88b]">{wedding.couple}</p><p className="mt-2">A fan-concept dawat inspired by Zanjeerain. {year}</p></footer>
+            <ConceptFooter year={year} />
           </div>
         </>
       )}
