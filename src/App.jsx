@@ -221,6 +221,69 @@ function AnimatedWords({ text, as: Tag = 'h2', className = '', delay = 0, immedi
   )
 }
 
+function KineticCoupleName({ active }) {
+  const lines = ['Sarbuland', '& Rabiya']
+
+  return (
+    <div className="kinetic-name-lockup max-w-full">
+      <h2 className="font-display text-5xl font-semibold leading-[0.9] text-parchment sm:text-7xl lg:text-8xl" aria-label={wedding.couple}>
+        <span className="sr-only">{wedding.couple}</span>
+        <span aria-hidden="true">
+          {lines.map((line, lineIndex) => (
+            <span key={line} className={`kinetic-name-line flex justify-center whitespace-nowrap sm:inline-flex lg:justify-start ${lineIndex ? 'mt-1 sm:ml-[0.18em] sm:mt-0' : ''}`}>
+              {Array.from(line).map((character, characterIndex) => (
+                <motion.span
+                  key={`${lineIndex}-${characterIndex}`}
+                  className="kinetic-name-character inline-block"
+                  initial={{ opacity: 0, y: 26, rotateX: -70, rotateZ: characterIndex % 2 ? 3 : -3 }}
+                  animate={active ? { opacity: 1, y: 0, rotateX: 0, rotateZ: 0 } : { opacity: 0, y: 26, rotateX: -70 }}
+                  transition={{ type: 'spring', stiffness: 135, damping: 17, mass: 0.72, delay: lineIndex * 0.14 + characterIndex * 0.035 }}
+                >
+                  {character === ' ' ? '\u00A0' : character}
+                </motion.span>
+              ))}
+            </span>
+          ))}
+        </span>
+      </h2>
+      <motion.span
+        aria-hidden="true"
+        className="mx-auto mt-4 block h-px w-24 origin-left bg-gradient-to-r from-[#f6d88b] to-transparent lg:mx-0"
+        initial={{ scaleX: 0, opacity: 0 }}
+        animate={active ? { scaleX: 1, opacity: 1 } : { scaleX: 0, opacity: 0 }}
+        transition={{ duration: 0.7, delay: 0.72, ease: [0.22, 1, 0.36, 1] }}
+      />
+    </div>
+  )
+}
+
+function KineticEyebrow({ text }) {
+  const words = text.split(' ')
+  const container = {
+    hidden: {},
+    show: { transition: { staggerChildren: 0.065 } },
+  }
+  const word = {
+    hidden: { opacity: 0, y: 13, rotate: -2 },
+    show: { opacity: 1, y: 0, rotate: 0, transition: { duration: 0.52, ease: [0.22, 1, 0.36, 1] } },
+  }
+
+  return (
+    <motion.p
+      className="kinetic-eyebrow relative z-30 flex max-w-xl flex-wrap gap-x-2 gap-y-1 text-[11px] font-bold uppercase tracking-[0.14em] text-marigold sm:text-xs sm:tracking-[0.3em]"
+      aria-label={text}
+      variants={container}
+      initial={captureMode ? false : 'hidden'}
+      whileInView={captureMode ? undefined : 'show'}
+      viewport={{ once: true, margin: '-45px' }}
+    >
+      <span className="sr-only">{text}</span>
+      {words.map((item, index) => <motion.span key={`${item}-${index}`} aria-hidden="true" variants={word} className="whitespace-nowrap">{item}</motion.span>)}
+      <motion.span aria-hidden="true" variants={word} className="mt-1 block h-px w-16 basis-full bg-gradient-to-r from-current to-transparent opacity-55" />
+    </motion.p>
+  )
+}
+
 function useReducedMotionPreference() {
   const [prefersReduced, setPrefersReduced] = useState(false)
 
@@ -337,8 +400,9 @@ function DawatEnvelopeGate({ onOpening, onOpened, reducedMotion, guestName }) {
           <div ref={cardRef} className="dawat-invite-card">
             <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-[#9a1630]">Private dawat</p>
             <p className="mt-4 text-sm font-semibold text-[#5b3430]">Dear {guestName},</p>
-            <h1 className="mt-3 text-balance font-display text-[clamp(2.15rem,9vw,4.5rem)] font-semibold leading-[0.94] text-[#2c0b12]">
-              {wedding.couple}
+            <h1 className="mt-3 text-balance font-display text-[2rem] font-semibold leading-[0.94] text-[#2c0b12] sm:text-[3.5rem]">
+              <span className="sm:hidden"><span className="block">Sarbuland</span><span className="mt-1 block">& Rabiya</span></span>
+              <span className="hidden sm:inline">{wedding.couple}</span>
             </h1>
             <p className="mx-auto mt-4 hidden max-w-sm text-sm font-semibold leading-7 text-[#68413a] sm:block">
               With duas and the blessings of both families, your presence is requested for the wedding celebrations.
@@ -389,7 +453,7 @@ function InfoPill({ icon: Icon, label }) {
   )
 }
 
-function HeroPortal() {
+function HeroPortal({ active }) {
   const sectionRef = useRef(null)
   const videoShellRef = useRef(null)
   const copyRef = useRef(null)
@@ -453,14 +517,10 @@ function HeroPortal() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(242,165,31,.22),transparent_34rem)]" />
       <div ref={glowRef} className="pointer-events-none absolute left-1/2 top-1/2 h-[48rem] w-[48rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,232,166,.42),rgba(242,165,31,.2)_38%,transparent_70%)] opacity-0 blur-3xl" />
       <div className="hero-portal-inner relative mx-auto grid w-full max-w-7xl items-center gap-8 lg:grid-cols-[0.88fr_1.12fr]">
-        <Reveal className="hero-portal-copy z-10 mx-auto w-full min-w-0 max-w-xl overflow-hidden text-center lg:mx-0 lg:text-left">
+        <Reveal className="hero-portal-copy z-10 mx-auto w-full min-w-0 max-w-xl overflow-visible px-1 text-center lg:mx-0 lg:px-0 lg:text-left">
           <div ref={copyRef}>
           <p className="mb-4 hidden text-xs font-bold uppercase tracking-[0.42em] text-marigold sm:block">Bismillah-ir-Rahman-ir-Rahim</p>
-          <div className="sm:hidden">
-            <AnimatedWords text="Sarbuland" immediate className="font-display text-5xl font-semibold leading-[0.92] text-parchment" />
-            <AnimatedWords text="& Rabiya" immediate className="mt-1 font-display text-5xl font-semibold leading-[0.92] text-parchment" />
-          </div>
-          <AnimatedWords text={wedding.couple} immediate className="hidden max-w-full font-display text-7xl font-semibold leading-[0.9] text-parchment sm:block lg:text-8xl" />
+          <KineticCoupleName active={active} />
           <p className="mx-auto mt-5 max-w-lg text-base leading-7 text-[#f7e4bf]/86 sm:mt-6 sm:text-lg sm:leading-8 lg:mx-0">
             Sarbuland and Rabiya request your presence as their families gather for three celebrations at Khan Haveli.
           </p>
@@ -729,7 +789,7 @@ function EventStory({ event, index }) {
       <div className={`event-motif event-motif-${event.slug}`} aria-hidden="true">{[0, 1, 2, 3, 4, 5, 6].map((item) => <span key={item} />)}</div>
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
         <Reveal className={reverse ? 'lg:order-2' : ''}>
-          <p className="text-xs font-bold uppercase tracking-[0.42em] text-marigold">{event.eyebrow}</p>
+          <KineticEyebrow text={event.eyebrow} />
           <motion.p
             className="mt-3 text-left font-urdu text-4xl leading-none text-[#d8b56b]/72 sm:text-5xl"
             initial={{ opacity: 0, x: 26 }}
@@ -743,7 +803,15 @@ function EventStory({ event, index }) {
           </motion.p>
           <div className="mt-3 flex flex-wrap items-end gap-x-5 gap-y-2">
             <AnimatedWords text={event.title} className="font-display text-5xl font-semibold leading-none sm:text-8xl" />
-            <span className="mb-2 rounded-full border border-[#f6d88b]/24 px-4 py-2 text-sm font-bold uppercase tracking-[0.18em] text-[#f6d88b]">{event.shortDate}</span>
+            <motion.span
+              className="mb-2 rounded-full border border-[#f6d88b]/24 px-4 py-2 text-sm font-bold uppercase tracking-[0.18em] text-[#f6d88b]"
+              initial={{ opacity: 0, scale: 0.82, rotate: -5 }}
+              whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 170, damping: 15, delay: 0.18 }}
+              viewport={{ once: true }}
+            >
+              {event.shortDate}
+            </motion.span>
           </div>
           <p className="mt-5 max-w-xl text-base leading-7 text-[#f7e4bf]/84 sm:mt-6 sm:text-lg sm:leading-8">{event.mood}</p>
           <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8">
@@ -1075,7 +1143,7 @@ function ConceptFooter({ year }) {
       <div className="relative mx-auto flex min-h-[430px] max-w-7xl flex-col justify-end px-4 py-12 sm:min-h-[520px] sm:py-16">
         <Reveal className="max-w-2xl">
           <p className="text-xs font-bold uppercase tracking-[0.38em] text-[#f6d88b]">A House of Saima concept</p>
-          <h2 className="mt-4 text-balance font-display text-5xl font-semibold leading-[0.94] sm:text-7xl">Your story could be the next unforgettable dawat.</h2>
+          <AnimatedWords text="Your story could be the next unforgettable dawat." as="h2" className="mt-4 text-balance font-display text-5xl font-semibold leading-[0.94] sm:text-7xl" />
           <p className="mt-6 max-w-xl text-base leading-7 text-[#fff8ea]/82 sm:text-lg sm:leading-8">This fictional wedding invitation inspired by the drama <em>Zanjeerain</em> was imagined by House of Saima. We create custom digital dawats around your names, faces, family, and celebrations.</p>
           <a href="https://www.instagram.com/houseofsaima/" target="_blank" rel="noreferrer" className="mt-7 inline-flex min-h-12 items-center gap-3 rounded-[6px] border border-[#f6d88b]/48 bg-[#fff8ea] px-5 py-3 text-sm font-bold uppercase tracking-[0.14em] text-[#2c0b12] shadow-[0_18px_50px_rgba(0,0,0,.28)] transition hover:border-[#f6d88b] hover:bg-[#f6d88b] focus:outline-none focus:ring-4 focus:ring-[#f6d88b]/20">
             <AtSign className="h-5 w-5" />
@@ -1169,7 +1237,7 @@ function App() {
           <MarigoldPhysics disabled={reducedMotion || mobileViewport} />
           <MotionToggle disabled={reducedMotion} onToggle={() => setMotionPaused((value) => !value)} />
           <div {...inviteShellProps} className={opened ? '' : 'pointer-events-none select-none'}>
-            <HeroPortal />
+            <HeroPortal active={opened} />
             <RasamTimeline />
             <StoryChapters />
             <EventDetails />

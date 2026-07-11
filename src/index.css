@@ -161,6 +161,22 @@ button {
   letter-spacing: 0.14em;
 }
 
+.kinetic-name-lockup,
+.kinetic-name-line,
+.kinetic-name-character {
+  overflow: visible;
+}
+
+.kinetic-name-character {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.kinetic-eyebrow {
+  text-shadow: 0 2px 14px rgba(7, 20, 35, 0.94);
+}
+
 .event-utility-link {
   display: inline-flex;
   min-height: 2.9rem;
@@ -645,6 +661,13 @@ button {
   }
 }
 
+@media (max-width: 767px) {
+  .petal-canvas,
+  .event-motif {
+    display: none !important;
+  }
+}
+
 @media (max-width: 640px) {
   .rasam-timeline {
     scrollbar-width: none;
@@ -666,9 +689,7 @@ button {
     max-width: 100%;
   }
 
-  .hero-portal-copy p,
-  .hero-portal-copy h1,
-  .hero-portal-copy h2 {
+  .hero-portal-copy p {
     overflow-wrap: anywhere;
   }
 
