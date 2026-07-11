@@ -50,20 +50,20 @@ const media = {
     valima: null,
   },
   images: {
-    openerEnvelope: asset('assets/zanjeerain/poster_hero.png'),
-    doorway: asset('assets/zanjeerain/og_poster.png'),
-    doorwayMobile: asset('assets/zanjeerain/poster_hero.png'),
-    hourglass: asset('assets/zanjeerain/hourglass_duo.png'),
-    mehndi: asset('assets/zanjeerain/event_mehndi.png'),
-    baraat: asset('assets/zanjeerain/event_nikkah.png'),
-    valima: asset('assets/zanjeerain/event_walima.png'),
-    salami: asset('assets/zanjeerain/test_couple.png'),
-    tasbeeh: asset('assets/zanjeerain/tasbeeh_hands.png'),
+    openerEnvelope: asset('assets/zanjeerain/poster_hero.webp'),
+    doorway: asset('assets/zanjeerain/og_poster.webp'),
+    doorwayMobile: asset('assets/zanjeerain/poster_hero.webp'),
+    hourglass: asset('assets/zanjeerain/hourglass_duo.webp'),
+    mehndi: asset('assets/zanjeerain/event_mehndi.webp'),
+    baraat: asset('assets/zanjeerain/event_nikkah.webp'),
+    valima: asset('assets/zanjeerain/event_walima.webp'),
+    salami: asset('assets/zanjeerain/test_couple.webp'),
+    tasbeeh: asset('assets/zanjeerain/tasbeeh_hands.webp'),
     story: [
-      asset('assets/zanjeerain/story_ch1.png'),
-      asset('assets/zanjeerain/story_ch2.png'),
-      asset('assets/zanjeerain/story_ch3.png'),
-      asset('assets/zanjeerain/story_ch4.png'),
+      asset('assets/zanjeerain/story_ch1.webp'),
+      asset('assets/zanjeerain/story_ch2.webp'),
+      asset('assets/zanjeerain/story_ch3.webp'),
+      asset('assets/zanjeerain/story_ch4.webp'),
     ],
   },
 }
@@ -128,9 +128,9 @@ const events = [
   },
 ]
 
-function VideoLoop({ src, poster, className = '', label }) {
+function VideoLoop({ src, poster, className = '', label, eager = false }) {
   if (!src) {
-    return <img className={`${className} media-drift`} src={poster} alt={label} loading="eager" />
+    return <img className={`${className} media-drift`} src={poster} alt={label} loading={eager ? 'eager' : 'lazy'} decoding="async" fetchPriority={eager ? 'high' : 'auto'} />
   }
 
   return (
@@ -234,10 +234,9 @@ function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
   const cardRef = useRef(null)
   const sealRef = useRef(null)
   const glowRef = useRef(null)
-  const crackRef = useRef(null)
   const promptRef = useRef(null)
-  const startY = useRef(null)
   const [opening, setOpening] = useState(false)
+  const [readyToEnter, setReadyToEnter] = useState(false)
 
   const openEnvelope = () => {
     if (opening) return
@@ -245,44 +244,39 @@ function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
     const compact = window.matchMedia('(max-width: 640px)').matches
 
     if (reducedMotion) {
-      gsap.to(overlayRef.current, {
-        opacity: 0,
-        pointerEvents: 'none',
-        duration: 0.24,
-        ease: 'power2.out',
-        onComplete: onOpened,
-      })
+      gsap.set(promptRef.current, { opacity: 0 })
+      gsap.set(sealRef.current, { opacity: 0 })
+      gsap.set(flapRef.current, { rotateX: -150, y: -10, transformOrigin: '50% 0%' })
+      gsap.set(cardRef.current, { y: compact ? '-20vh' : '-27vh', opacity: 1, scale: 1 })
+      setReadyToEnter(true)
       return
     }
 
     gsap
-      .timeline({ defaults: { ease: 'power4.inOut' }, onComplete: onOpened })
-      .to(promptRef.current, { opacity: 0, y: 12, duration: 0.22 }, 0)
-      .to(crackRef.current, { opacity: 1, scale: 1.1, duration: 0.2, ease: 'power2.out' }, 0.02)
-      .to('.wax-bit', { opacity: 1, scale: 1, x: 'random(-44,44)', y: 'random(-38,18)', rotate: 'random(-80,80)', stagger: 0.018, duration: 0.32 }, 0.04)
-      .to(sealRef.current, { scale: 0.72, rotate: 18, opacity: 0, duration: 0.34 }, 0.18)
-      .to(glowRef.current, { opacity: 1, scale: 1.05, duration: 0.42 }, 0.2)
-      .to(flapRef.current, { rotateX: -148, y: -18, transformOrigin: '50% 0%', duration: 0.74 }, 0.3)
-      .to(pocketRef.current, { y: 18, filter: 'brightness(1.12)', duration: 0.54 }, 0.38)
-      .to(cardRef.current, { y: compact ? '-23vh' : '-31vh', opacity: 1, scale: 1.035, duration: 0.86 }, 0.5)
-      .to(glowRef.current, { scale: 1.8, opacity: 1, duration: 0.76 }, 0.72)
-      .to(stageRef.current, { scale: compact ? 1.16 : 1.32, y: compact ? '-3vh' : '-6vh', filter: 'brightness(1.25)', duration: 0.82 }, 0.86)
-      .to(overlayRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.48 }, 1.26)
+      .timeline({ defaults: { ease: 'power3.inOut' }, onComplete: () => setReadyToEnter(true) })
+      .to(promptRef.current, { opacity: 0, y: 8, duration: 0.3 }, 0)
+      .to(sealRef.current, { scale: 0.88, opacity: 0, duration: 0.38, ease: 'power2.out' }, 0.08)
+      .to(flapRef.current, { rotateX: -150, y: -12, transformOrigin: '50% 0%', duration: 0.85 }, 0.3)
+      .to(pocketRef.current, { y: 10, filter: 'brightness(1.08)', duration: 0.62 }, 0.4)
+      .to(glowRef.current, { opacity: 0.55, scale: 1.18, duration: 0.8 }, 0.42)
+      .to(cardRef.current, { y: compact ? '-20vh' : '-27vh', opacity: 1, scale: 1, duration: 1.05, ease: 'power3.out' }, 0.62)
+  }
+
+  const enterInvitation = () => {
+    if (!readyToEnter) return
+    if (reducedMotion) {
+      onOpened()
+      return
+    }
+    gsap.timeline({ onComplete: onOpened })
+      .to(stageRef.current, { y: -18, scale: 1.025, duration: 0.5, ease: 'power2.in' })
+      .to(overlayRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.72, ease: 'power2.inOut' }, 0.12)
   }
 
   return (
     <motion.div
       ref={overlayRef}
       className="fixed inset-0 z-[90] overflow-hidden bg-[#071423]"
-      onPointerDown={(event) => {
-        startY.current = event.clientY
-      }}
-      onPointerUp={(event) => {
-        if (startY.current === null) return
-        const distance = event.clientY - startY.current
-        startY.current = null
-        if (distance < -42) openEnvelope()
-      }}
       initial={{ opacity: 1 }}
     >
       <div className="absolute inset-0 opacity-38">
@@ -291,6 +285,7 @@ function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
           poster={media.images.openerEnvelope}
           label="Luxury wedding envelope texture"
           className="h-full w-full object-cover"
+          eager
         />
         <div className="absolute inset-0 bg-[#071423]/55" />
       </div>
@@ -301,7 +296,7 @@ function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
       <div className="relative grid min-h-screen place-items-center px-4 py-7">
         <motion.div
           ref={stageRef}
-          className="dawat-gate-stage"
+          className={`dawat-gate-stage ${opening ? 'is-open' : ''}`}
           initial={{ opacity: 0, y: 24, scale: 0.94 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.75, ease: 'easeOut' }}
@@ -316,6 +311,15 @@ function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
               With duas and the blessings of both families, your presence is requested for the wedding celebrations.
             </p>
             <p className="mt-5 text-xs font-bold uppercase tracking-[0.24em] text-[#9a1630]">{wedding.dateLabel}</p>
+            <button
+              type="button"
+              disabled={!readyToEnter}
+              onClick={enterInvitation}
+              className={`dawat-enter-button ${readyToEnter ? 'is-ready' : ''}`}
+            >
+              <Sparkles className="h-4 w-4" />
+              Enter the celebration
+            </button>
           </div>
 
           <div className="dawat-envelope" aria-hidden="true">
@@ -333,28 +337,19 @@ function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
           <motion.button
             ref={sealRef}
             type="button"
-            drag="y"
-            dragConstraints={{ top: -84, bottom: 20 }}
-            dragElastic={0.16}
-            onDragEnd={(_, info) => {
-              if (info.offset.y < -32 || info.velocity.y < -260) openEnvelope()
-            }}
+            disabled={opening}
             onClick={openEnvelope}
             className="seal-shine dawat-wax-seal"
             aria-label="Open Sarbuland and Rabiya invitation"
             whileTap={{ scale: 0.96 }}
           >
             <span className="font-display text-3xl font-semibold">{wedding.initials}</span>
-            <span ref={crackRef} className="wax-crack" />
-            {[0, 1, 2, 3, 4, 5].map((bit) => (
-              <span key={bit} className="wax-bit" />
-            ))}
           </motion.button>
         </motion.div>
 
         <div ref={promptRef} className="absolute bottom-7 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full border border-[#f6d88b]/28 bg-[#071423]/78 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[#f7e4bf] shadow-glow backdrop-blur-md sm:bottom-9">
           <ChevronUp className="h-4 w-4" />
-          Tap {wedding.initials} or swipe up
+          Tap the {wedding.initials} seal
         </div>
       </div>
     </motion.div>
@@ -454,7 +449,7 @@ function HeroPortal() {
         <div ref={videoShellRef} className="relative aspect-[4/3] w-full min-w-0 max-w-full overflow-hidden rounded-[8px] border border-[#f6d88b]/24 bg-black shadow-gold-soft sm:aspect-[16/9]">
           <picture>
             <source media="(max-width: 639px)" srcSet={media.images.doorwayMobile} />
-            <img src={media.images.doorway} alt="Sarbuland and Rabiya beneath the haveli lights" className="media-drift h-full w-full object-cover" />
+            <img src={media.images.doorway} alt="Sarbuland and Rabiya beneath the haveli lights" className="media-drift h-full w-full object-cover" loading="eager" decoding="async" fetchPriority="high" />
           </picture>
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_38%,rgba(19,5,8,.52)_100%)]" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#071423] to-transparent" />
@@ -568,7 +563,7 @@ function StoryChapters() {
             transition={{ duration: 0.55, ease: 'easeOut' }}
             className="story-image-shell"
           >
-            <img src={chapter.image} alt={`${chapter.title} illustrated scene`} className="h-full w-full object-cover" />
+            <img src={chapter.image} alt={`${chapter.title} illustrated scene`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#071423]/76 via-transparent to-transparent" />
             <div className="absolute inset-x-5 bottom-5 sm:inset-x-8 sm:bottom-8">
               <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-[#f0c66d]">{chapter.eyebrow}</p>
