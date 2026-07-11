@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { motion, useMotionValue, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Matter from 'matter-js'
@@ -52,6 +52,7 @@ const media = {
   images: {
     openerEnvelope: asset('assets/zanjeerain/poster_hero.png'),
     doorway: asset('assets/zanjeerain/og_poster.png'),
+    doorwayMobile: asset('assets/zanjeerain/poster_hero.png'),
     hourglass: asset('assets/zanjeerain/hourglass_duo.png'),
     mehndi: asset('assets/zanjeerain/event_mehndi.png'),
     baraat: asset('assets/zanjeerain/event_nikkah.png'),
@@ -170,17 +171,20 @@ function AnimatedWords({ text, as: Tag = 'h2', className = '', delay = 0, immedi
       <span className="sr-only">{text}</span>
       <span aria-hidden="true">
         {words.map((word, index) => (
-          <span key={`${word}-${index}`} className="mr-[0.22em] inline-block overflow-hidden align-bottom">
-            <motion.span
-              className="inline-block"
-              initial={{ y: '112%', opacity: 0, rotate: 2 }}
-              animate={animateImmediately ? { y: '0%', opacity: 1, rotate: 0 } : undefined}
-              whileInView={animateImmediately ? undefined : { y: '0%', opacity: 1, rotate: 0 }}
-              transition={{ duration: 0.68, delay: delay + index * 0.075, ease: [0.22, 1, 0.36, 1] }}
-              viewport={animateImmediately ? undefined : { once: true, margin: '-70px' }}
-            >
-              {word}
-            </motion.span>
+          <span key={`${word}-${index}`}>
+            <span className="mr-[0.22em] inline-block overflow-hidden align-bottom">
+              <motion.span
+                className="inline-block"
+                initial={{ y: '112%', opacity: 0, rotate: 2 }}
+                animate={animateImmediately ? { y: '0%', opacity: 1, rotate: 0 } : undefined}
+                whileInView={animateImmediately ? undefined : { y: '0%', opacity: 1, rotate: 0 }}
+                transition={{ duration: 0.68, delay: delay + index * 0.075, ease: [0.22, 1, 0.36, 1] }}
+                viewport={animateImmediately ? undefined : { once: true, margin: '-70px' }}
+              >
+                {word}
+              </motion.span>
+            </span>
+            {index < words.length - 1 && <wbr />}
           </span>
         ))}
       </span>
@@ -200,6 +204,19 @@ function useReducedMotionPreference() {
   }, [])
 
   return prefersReduced
+}
+
+function useMobileViewport() {
+  const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 767px)').matches)
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 767px)')
+    const update = () => setMobile(query.matches)
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
+
+  return mobile
 }
 
 function useGuestName() {
@@ -225,6 +242,7 @@ function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
   const openEnvelope = () => {
     if (opening) return
     setOpening(true)
+    const compact = window.matchMedia('(max-width: 640px)').matches
 
     if (reducedMotion) {
       gsap.to(overlayRef.current, {
@@ -246,9 +264,9 @@ function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
       .to(glowRef.current, { opacity: 1, scale: 1.05, duration: 0.42 }, 0.2)
       .to(flapRef.current, { rotateX: -148, y: -18, transformOrigin: '50% 0%', duration: 0.74 }, 0.3)
       .to(pocketRef.current, { y: 18, filter: 'brightness(1.12)', duration: 0.54 }, 0.38)
-      .to(cardRef.current, { y: '-40vh', opacity: 1, scale: 1.035, duration: 0.86 }, 0.5)
+      .to(cardRef.current, { y: compact ? '-23vh' : '-31vh', opacity: 1, scale: 1.035, duration: 0.86 }, 0.5)
       .to(glowRef.current, { scale: 1.8, opacity: 1, duration: 0.76 }, 0.72)
-      .to(stageRef.current, { scale: 1.45, y: '-7vh', filter: 'brightness(1.25)', duration: 0.82 }, 0.86)
+      .to(stageRef.current, { scale: compact ? 1.16 : 1.32, y: compact ? '-3vh' : '-6vh', filter: 'brightness(1.25)', duration: 0.82 }, 0.86)
       .to(overlayRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.48 }, 1.26)
   }
 
@@ -294,7 +312,7 @@ function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
             <h1 className="mt-3 text-balance font-display text-[clamp(2.15rem,9vw,4.5rem)] font-semibold leading-[0.94] text-[#2c0b12]">
               {wedding.couple}
             </h1>
-            <p className="mx-auto mt-4 max-w-sm text-sm font-semibold leading-7 text-[#68413a]">
+            <p className="mx-auto mt-4 hidden max-w-sm text-sm font-semibold leading-7 text-[#68413a] sm:block">
               With duas and the blessings of both families, your presence is requested for the wedding celebrations.
             </p>
             <p className="mt-5 text-xs font-bold uppercase tracking-[0.24em] text-[#9a1630]">{wedding.dateLabel}</p>
@@ -345,9 +363,9 @@ function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
 
 function InfoPill({ icon: Icon, label }) {
   return (
-    <div className="glass-panel flex min-h-16 items-center gap-3 rounded-[8px] px-4 py-3">
-      <Icon className="h-5 w-5 shrink-0 text-marigold" strokeWidth={1.7} />
-      <span className="text-balance text-sm font-medium">{label}</span>
+    <div className="glass-panel flex min-h-14 min-w-0 items-center gap-2 overflow-hidden rounded-[8px] px-3 py-2.5 sm:min-h-16 sm:gap-3 sm:px-4 sm:py-3">
+      <Icon className="h-4 w-4 shrink-0 text-marigold sm:h-5 sm:w-5" strokeWidth={1.7} />
+      <span className="min-w-0 break-words text-balance text-xs font-medium leading-5 sm:text-sm">{label}</span>
     </div>
   )
 }
@@ -359,51 +377,85 @@ function HeroPortal() {
   const glowRef = useRef(null)
   useEffect(() => {
     if (new URLSearchParams(window.location.search).has('section')) return undefined
-    const context = gsap.context(() => {
-      gsap.to(videoShellRef.current, {
-        scale: 2.08,
-        borderRadius: 0,
-        boxShadow: '0 0 160px rgba(242,165,31,.42)',
-        ease: 'none',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top top', end: '+=1050', scrub: true, pin: true },
-      })
-      gsap.to(copyRef.current, {
-        y: -60,
-        opacity: 0.18,
-        filter: 'blur(8px)',
-        ease: 'none',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top top', end: '+=740', scrub: true },
-      })
-      gsap.to(glowRef.current, {
-        opacity: 1,
-        scale: 1.5,
-        ease: 'none',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top top', end: '+=840', scrub: true },
-      })
-    }, sectionRef)
-    return () => context.revert()
+    const mediaQuery = gsap.matchMedia()
+
+    mediaQuery.add('(min-width: 768px)', () => {
+      const context = gsap.context(() => {
+        gsap.to(videoShellRef.current, {
+          scale: 2.08,
+          borderRadius: 0,
+          boxShadow: '0 0 160px rgba(242,165,31,.42)',
+          ease: 'none',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top top', end: '+=1050', scrub: true, pin: true },
+        })
+        gsap.to(copyRef.current, {
+          y: -60,
+          opacity: 0.18,
+          filter: 'blur(8px)',
+          ease: 'none',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top top', end: '+=740', scrub: true },
+        })
+        gsap.to(glowRef.current, {
+          opacity: 1,
+          scale: 1.5,
+          ease: 'none',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top top', end: '+=840', scrub: true },
+        })
+      }, sectionRef)
+      return () => context.revert()
+    })
+
+    mediaQuery.add('(max-width: 767px)', () => {
+      const context = gsap.context(() => {
+        gsap.fromTo(
+          videoShellRef.current,
+          { scale: 0.96, borderRadius: 8 },
+          {
+            scale: 1.12,
+            borderRadius: 0,
+            ease: 'none',
+            scrollTrigger: { trigger: videoShellRef.current, start: 'top 82%', end: 'bottom 18%', scrub: 0.45 },
+          },
+        )
+        gsap.to(copyRef.current, {
+          y: -18,
+          opacity: 0.72,
+          ease: 'none',
+          scrollTrigger: { trigger: videoShellRef.current, start: 'top 88%', end: 'top 28%', scrub: 0.4 },
+        })
+      }, sectionRef)
+      return () => context.revert()
+    })
+
+    return () => mediaQuery.revert()
   }, [])
   return (
-    <section ref={sectionRef} data-particle="glitter" className="relative flex min-h-screen items-center overflow-hidden bg-[#071423] px-4 py-16">
+    <section ref={sectionRef} data-particle="glitter" className="relative flex min-h-0 items-center overflow-hidden bg-[#071423] px-4 py-14 md:min-h-screen md:py-16">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(242,165,31,.22),transparent_34rem)]" />
       <div ref={glowRef} className="pointer-events-none absolute left-1/2 top-1/2 h-[48rem] w-[48rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,232,166,.42),rgba(242,165,31,.2)_38%,transparent_70%)] opacity-0 blur-3xl" />
-      <div className="relative mx-auto grid w-full max-w-7xl items-center gap-8 lg:grid-cols-[0.88fr_1.12fr]">
-        <Reveal className="z-10 max-w-xl text-center lg:text-left">
+      <div className="hero-portal-inner relative mx-auto grid w-full max-w-7xl items-center gap-8 lg:grid-cols-[0.88fr_1.12fr]">
+        <Reveal className="hero-portal-copy z-10 mx-auto w-full min-w-0 max-w-xl overflow-hidden text-center lg:mx-0 lg:text-left">
           <div ref={copyRef}>
-          <p className="mb-4 text-xs font-bold uppercase tracking-[0.42em] text-marigold">Bismillah-ir-Rahman-ir-Rahim</p>
-          <AnimatedWords text={wedding.couple} immediate className="font-display text-6xl font-semibold leading-[0.9] text-parchment sm:text-8xl" />
-          <p className="mt-6 text-lg leading-8 text-[#f7e4bf]/86">
-            After every silence, every duty, and every road through the mountains, Sarbuland and Rabiya request your presence as their families gather for three nights of light, nikkah, and new beginnings.
+          <p className="mb-4 hidden text-xs font-bold uppercase tracking-[0.42em] text-marigold sm:block">Bismillah-ir-Rahman-ir-Rahim</p>
+          <div className="sm:hidden">
+            <AnimatedWords text="Sarbuland" immediate className="font-display text-5xl font-semibold leading-[0.92] text-parchment" />
+            <AnimatedWords text="& Rabiya" immediate className="mt-1 font-display text-5xl font-semibold leading-[0.92] text-parchment" />
+          </div>
+          <AnimatedWords text={wedding.couple} immediate className="hidden max-w-full font-display text-7xl font-semibold leading-[0.9] text-parchment sm:block lg:text-8xl" />
+          <p className="mx-auto mt-5 max-w-lg text-base leading-7 text-[#f7e4bf]/86 sm:mt-6 sm:text-lg sm:leading-8 lg:mx-0">
+            Sarbuland and Rabiya request your presence as their families gather for three celebrations at Khan Haveli.
           </p>
-          <div className="mt-8 grid gap-3 text-left text-sm text-[#fff8ea]/86 sm:grid-cols-3">
+          <div className="mt-7 grid grid-cols-1 gap-3 text-left text-sm text-[#fff8ea]/86 sm:mt-8 sm:grid-cols-2">
             <InfoPill icon={CalendarDays} label={wedding.dateLabel} />
-            <InfoPill icon={Music2} label="Three haveli celebrations" />
             <InfoPill icon={MapPin} label={wedding.venue} />
           </div>
           </div>
         </Reveal>
-        <div ref={videoShellRef} className="relative aspect-[16/9] overflow-hidden rounded-[8px] border border-[#f6d88b]/24 bg-black shadow-gold-soft">
-          <VideoLoop src={media.videos.doorway} poster={media.images.doorway} label="Animated haveli doors opening" className="h-full w-full object-cover" />
+        <div ref={videoShellRef} className="relative aspect-[4/3] w-full min-w-0 max-w-full overflow-hidden rounded-[8px] border border-[#f6d88b]/24 bg-black shadow-gold-soft sm:aspect-[16/9]">
+          <picture>
+            <source media="(max-width: 639px)" srcSet={media.images.doorwayMobile} />
+            <img src={media.images.doorway} alt="Sarbuland and Rabiya beneath the haveli lights" className="media-drift h-full w-full object-cover" />
+          </picture>
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_38%,rgba(19,5,8,.52)_100%)]" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#071423] to-transparent" />
         </div>
@@ -415,11 +467,8 @@ function HeroPortal() {
 function RasamTimeline() {
   const links = useMemo(
     () => [
-      { label: 'Rasmein', target: 'rasmein' },
-      { label: 'Their Story', target: 'story-chapters' },
+      { label: 'Story', target: 'story-chapters' },
       ...events.map((event) => ({ label: event.title, target: `event-${event.slug}` })),
-      { label: 'Secret', target: 'scratch-note' },
-      { label: 'Salami', target: 'salami' },
       { label: 'Confirm', target: 'confirm' },
     ],
     [],
@@ -447,7 +496,7 @@ function RasamTimeline() {
 
   return (
     <nav className="sticky top-0 z-50 border-y border-[#f6d88b]/18 bg-[#071423]/90 px-3 py-3 backdrop-blur-xl" aria-label="Wedding event timeline">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 overflow-x-auto">
+      <div className="rasam-timeline mx-auto flex max-w-7xl items-center gap-3 overflow-x-auto">
         <div className="hidden h-px min-w-12 bg-gradient-to-r from-transparent via-[#f6d88b]/46 to-[#f6d88b]/16 sm:block" />
         {links.map((link) => (
           <button
@@ -467,92 +516,6 @@ function RasamTimeline() {
         ))}
       </div>
     </nav>
-  )
-}
-
-function InteractiveGallery() {
-  const [fairy, setFairy] = useState({ x: 50, y: 0 })
-
-  return (
-    <section
-      id="rasmein"
-      data-particle="marigold"
-      className="relative overflow-hidden bg-[#fff8ea] px-4 py-24 text-ink sm:py-32"
-      onPointerMove={(event) => {
-        const rect = event.currentTarget.getBoundingClientRect()
-        setFairy({
-          x: ((event.clientX - rect.left) / rect.width) * 100,
-          y: Math.max(-16, Math.min(20, event.clientY - rect.top - 74)),
-        })
-      }}
-    >
-      <div className="absolute left-0 right-0 top-12 h-8 fairy-wire" />
-      <div
-        className="fairy-light-string"
-        style={{ '--fairy-x': `${fairy.x}%`, '--fairy-y': `${fairy.y}px` }}
-        aria-hidden="true"
-      >
-        {[0, 1, 2, 3, 4, 5, 6, 7].map((light) => (
-          <span key={light} style={{ '--i': light }} />
-        ))}
-      </div>
-      <div className="mx-auto max-w-7xl">
-        <Reveal className="max-w-2xl">
-          <p className="text-xs font-bold uppercase tracking-[0.4em] text-rouge">Rasmein</p>
-          <AnimatedWords text="Choose the evening you are coming for." className="mt-4 font-display text-5xl font-semibold leading-none text-ink sm:text-7xl" />
-          <p className="mt-5 text-lg leading-8 text-[#5b3430]">Drag the hanging memories if you want to play. Tap one to jump straight to the dawat details.</p>
-        </Reveal>
-        <div className="mt-16 grid min-h-[520px] gap-8 md:grid-cols-3">
-          {events.map((item, index) => <SwingingPolaroid key={item.title} item={item} index={index} />)}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function SwingingPolaroid({ item, index }) {
-  const x = useMotionValue(0)
-  const rotate = useTransform(x, [-180, 180], [-14, 14])
-  const didDrag = useRef(false)
-  const initialRotate = [-5, 4, -3][index]
-  return (
-    <motion.button
-      type="button"
-      drag
-      dragElastic={0.38}
-      dragConstraints={{ left: -130, right: 130, top: -70, bottom: 85 }}
-      onClick={(event) => {
-        if (didDrag.current) {
-          event.preventDefault()
-          return
-        }
-        document.getElementById(`event-${item.slug}`)?.scrollIntoView({ behavior: 'smooth' })
-      }}
-      onDragStart={() => { didDrag.current = true }}
-      onDragEnd={() => { window.setTimeout(() => { didDrag.current = false }, 0) }}
-      style={{ x, rotate }}
-      initial={{ y: 42, opacity: 0, rotate: initialRotate }}
-      whileInView={{ y: 0, opacity: 1, rotate: initialRotate }}
-      whileDrag={{ scale: 1.04, cursor: 'grabbing' }}
-      transition={{ type: 'spring', stiffness: 100, damping: 13, delay: index * 0.1 }}
-      viewport={{ once: true, margin: '-80px' }}
-      className="relative mx-auto flex w-full max-w-[360px] cursor-grab flex-col rounded-[6px] bg-white p-3 pb-8 text-left shadow-[0_28px_80px_rgba(43,21,20,.22)] outline-none transition focus:ring-4 focus:ring-[#f2a51f]/35"
-    >
-      <div className="absolute left-1/2 top-[-46px] h-12 w-px -translate-x-1/2 bg-[#8f5d28]/40" />
-      <div className="absolute left-1/2 top-[-55px] h-5 w-5 -translate-x-1/2 rounded-full border border-[#8f5d28]/30 bg-[#f2a51f] shadow-[0_0_18px_rgba(242,165,31,.7)]" />
-      <div className="relative aspect-[4/5] overflow-hidden rounded-[4px] bg-[#071423]">
-        <VideoLoop src={item.video} poster={item.image} label={`${item.title} loop`} className="h-full w-full object-cover" />
-        <div className={`absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t ${item.palette} opacity-28`} />
-      </div>
-      <div className="mt-5 flex items-end justify-between gap-4">
-        <div>
-          <h3 className="font-display text-4xl font-semibold leading-none text-ink">{item.title}</h3>
-          <p className="mt-1 text-sm font-semibold uppercase tracking-[0.24em] text-[#8c1323]">{item.shortDate}</p>
-          <p className="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-[#8f5d28]">Tap to view details</p>
-        </div>
-        <Sparkles className="mb-1 h-6 w-6 text-antique" strokeWidth={1.7} />
-      </div>
-    </motion.button>
   )
 }
 
@@ -588,13 +551,13 @@ function StoryChapters() {
   const chapter = storyChapters[active]
 
   return (
-    <section id="story-chapters" data-particle="glitter" className="relative scroll-mt-16 overflow-hidden bg-[#071423] px-4 py-24 text-parchment sm:py-32">
+    <section id="story-chapters" data-particle="glitter" className="relative scroll-mt-16 overflow-hidden bg-[#071423] px-4 py-16 text-parchment sm:py-24">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_28%,rgba(45,78,112,.42),transparent_30rem),radial-gradient(circle_at_78%_70%,rgba(201,155,82,.16),transparent_24rem)]" />
       <div className="relative mx-auto max-w-7xl">
         <Reveal className="max-w-3xl">
           <p className="text-xs font-bold uppercase tracking-[0.4em] text-[#d8b56b]">Their story, reimagined</p>
-          <AnimatedWords text="Every zanjeer led them here." className="mt-4 font-display text-5xl font-semibold leading-none sm:text-7xl" />
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-[#dce6ef]/78">Tap through four quiet chapters before you enter the wedding celebrations.</p>
+          <AnimatedWords text="Every zanjeer led them here." className="mt-4 font-display text-4xl font-semibold leading-none sm:text-7xl" />
+          <p className="mt-4 max-w-2xl text-base leading-7 text-[#dce6ef]/78 sm:mt-5 sm:text-lg sm:leading-8">Four quiet chapters before the wedding celebrations.</p>
         </Reveal>
 
         <div className="mt-12 grid items-center gap-8 lg:grid-cols-[1.08fr_0.92fr]">
@@ -613,7 +576,7 @@ function StoryChapters() {
             </div>
           </motion.div>
 
-          <div className="grid gap-3">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
             {storyChapters.map((item, index) => (
               <button
                 key={item.title}
@@ -625,7 +588,7 @@ function StoryChapters() {
                 <span className="story-chapter-number">0{index + 1}</span>
                 <span>
                   <span className="block font-display text-2xl font-semibold leading-tight">{item.title}</span>
-                  <span className="mt-2 block text-sm leading-6 text-[#dce6ef]/72">{item.text}</span>
+                  <span className="story-chapter-copy mt-2 block text-sm leading-6 text-[#dce6ef]/72">{item.text}</span>
                 </span>
               </button>
             ))}
@@ -636,6 +599,7 @@ function StoryChapters() {
   )
 }
 
+// eslint-disable-next-line no-unused-vars -- Optional extended-invite section.
 function RasamPlayground() {
   const [mehndiReveal, setMehndiReveal] = useState(0)
   const [beats, setBeats] = useState(0)
@@ -741,7 +705,7 @@ function EventDetails() {
 function EventStory({ event, index }) {
   const reverse = index % 2 === 1
   return (
-    <article id={`event-${event.slug}`} data-particle={event.slug} className="relative scroll-mt-6 overflow-hidden px-4 py-20 sm:py-28">
+    <article id={`event-${event.slug}`} data-particle={event.slug} className="relative scroll-mt-6 overflow-hidden px-4 py-14 sm:py-24">
       <div className="absolute inset-0 opacity-80" style={{ background: `radial-gradient(circle at ${reverse ? '72%' : '28%'} 35%, ${event.accent}33, transparent 28rem)` }} />
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
         <Reveal className={reverse ? 'lg:order-2' : ''}>
@@ -758,17 +722,17 @@ function EventStory({ event, index }) {
             {event.urdu}
           </motion.p>
           <div className="mt-3 flex flex-wrap items-end gap-x-5 gap-y-2">
-            <AnimatedWords text={event.title} className="font-display text-6xl font-semibold leading-none sm:text-8xl" />
+            <AnimatedWords text={event.title} className="font-display text-5xl font-semibold leading-none sm:text-8xl" />
             <span className="mb-2 rounded-full border border-[#f6d88b]/24 px-4 py-2 text-sm font-bold uppercase tracking-[0.18em] text-[#f6d88b]">{event.shortDate}</span>
           </div>
-          <p className="mt-6 max-w-xl text-lg leading-8 text-[#f7e4bf]/84">{event.mood}</p>
-          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          <p className="mt-5 max-w-xl text-base leading-7 text-[#f7e4bf]/84 sm:mt-6 sm:text-lg sm:leading-8">{event.mood}</p>
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8">
             <InfoPill icon={CalendarDays} label={event.date} />
             <InfoPill icon={Clock} label={event.time} />
             <InfoPill icon={MapPin} label={event.venue} />
             <InfoPill icon={Navigation} label={event.locationHint} />
           </div>
-          <div className="mt-8 grid gap-5 md:grid-cols-[0.9fr_1.1fr]">
+          <div className="mt-8 hidden gap-5 sm:grid md:grid-cols-[0.9fr_1.1fr]">
             <DetailBox icon={Palette} title="Dress mood" text={event.dressCode} />
             <div className="glass-panel rounded-[8px] p-5">
               <div className="mb-3 flex items-center gap-3 text-[#f6d88b]">
@@ -778,14 +742,14 @@ function EventStory({ event, index }) {
               <div className="grid gap-2">{event.flow.map((item, flowIndex) => <div key={item} className="flex items-center gap-3 text-sm text-[#fff8ea]/82"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#f2a51f]/15 text-xs font-bold text-[#f6d88b]">{flowIndex + 1}</span>{item}</div>)}</div>
             </div>
           </div>
-          <div className="mt-6 flex gap-4 rounded-[8px] border border-[#f6d88b]/18 bg-[#fff8ea]/7 p-5">
+          <div className="mt-6 hidden gap-4 rounded-[8px] border border-[#f6d88b]/18 bg-[#fff8ea]/7 p-5 sm:flex">
             <Quote className="mt-1 h-5 w-5 shrink-0 text-marigold" strokeWidth={1.7} />
             <p className="text-sm leading-7 text-[#fff8ea]/78">{event.note}</p>
           </div>
         </Reveal>
         <Reveal delay={0.08} className={`relative mx-auto w-full max-w-[560px] ${reverse ? 'lg:order-1' : ''}`}>
           <div className="absolute -inset-4 rounded-[10px] bg-gradient-to-br from-[#f2a51f]/24 via-transparent to-[#8c1323]/24 blur-xl" />
-          <div className="relative aspect-[3/4] overflow-hidden rounded-[8px] border border-[#f6d88b]/24 bg-[#071423] shadow-gold-soft">
+          <div className="relative aspect-square overflow-hidden rounded-[8px] border border-[#f6d88b]/24 bg-[#071423] shadow-gold-soft sm:aspect-[3/4]">
             <VideoLoop src={event.video} poster={event.image} label={`${event.title} animation`} className="event-artwork h-full w-full object-contain" />
             <div className={`absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t ${event.palette} opacity-30`} />
           </div>
@@ -811,7 +775,7 @@ function CountdownHourglass() {
   return (
     <section
       data-particle="countdown"
-      className="relative overflow-hidden bg-[#071423] px-4 py-24 sm:py-32"
+      className="relative overflow-hidden bg-[#071423] px-4 py-16 sm:py-24"
       onPointerMove={(event) => {
         const rect = event.currentTarget.getBoundingClientRect()
         setTilt({
@@ -823,9 +787,9 @@ function CountdownHourglass() {
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(242,165,31,.18),transparent_34rem)]" />
       <div className="relative mx-auto max-w-7xl">
-        <Reveal className="mb-10 text-center"><p className="text-xs font-bold uppercase tracking-[0.42em] text-marigold">Countdown</p><AnimatedWords text="Until Khan Haveli opens its doors" className="mt-4 font-display text-5xl font-semibold leading-none text-parchment sm:text-7xl" /></Reveal>
+        <Reveal className="mb-7 text-center sm:mb-10"><p className="text-xs font-bold uppercase tracking-[0.42em] text-marigold">Countdown</p><AnimatedWords text="Until Khan Haveli opens its doors" className="mt-4 font-display text-4xl font-semibold leading-none text-parchment sm:text-7xl" /></Reveal>
         <div
-          className="hourglass-tilt relative mx-auto aspect-[4/5] max-w-3xl overflow-hidden rounded-[8px] border border-[#f6d88b]/24 bg-[#071423] shadow-gold-soft"
+          className="hourglass-tilt relative mx-auto aspect-[5/4] max-w-3xl overflow-hidden rounded-[8px] border border-[#f6d88b]/24 bg-[#071423] shadow-gold-soft sm:aspect-[4/5]"
           style={{ transform: `perspective(900px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)` }}
         >
           <VideoLoop src={media.videos.hourglass} poster={media.images.hourglass} label="Animated hourglass countdown" className="h-full w-full object-cover" />
@@ -838,6 +802,7 @@ function CountdownHourglass() {
   )
 }
 
+// eslint-disable-next-line no-unused-vars -- Optional extended-invite section.
 function ScratchReveal() {
   const canvasRef = useRef(null)
   const [revealed, setRevealed] = useState(false)
@@ -905,6 +870,7 @@ function FamilyPhotoFlash() {
   )
 }
 
+// eslint-disable-next-line no-unused-vars -- Optional extended-invite section.
 function SalamiSection() {
   const [opened, setOpened] = useState(false)
 
@@ -1017,20 +983,20 @@ function ConfirmInvitation() {
     }
   }
   return (
-    <section id="confirm" data-particle="ivory" className="relative overflow-hidden bg-[#fff8ea] px-4 py-24 text-ink sm:py-32">
-      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+    <section id="confirm" data-particle="ivory" className="relative overflow-hidden bg-[#fff8ea] px-4 py-16 text-ink sm:py-24">
+      <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-10">
         <Reveal>
           <p className="text-xs font-bold uppercase tracking-[0.42em] text-rouge">Confirm invitation</p>
-          <AnimatedWords text="Tell the hosts your family count." className="mt-4 font-display text-5xl font-semibold leading-none sm:text-7xl" />
-          <p className="mt-6 max-w-xl text-lg leading-8 text-[#5b3430]">A quick reply helps the family arrange seating, dinner, and a proper welcome at each rasam.</p>
-          <div className="mt-8 grid gap-3 text-sm font-semibold text-[#4a2825]">
+          <AnimatedWords text="Tell the hosts your family count." className="mt-4 font-display text-4xl font-semibold leading-none sm:text-7xl" />
+          <p className="mt-5 max-w-xl text-base leading-7 text-[#5b3430] sm:mt-6 sm:text-lg sm:leading-8">A quick reply helps the family arrange seating, dinner, and a proper welcome at each rasam.</p>
+          <div className="mt-8 hidden gap-3 text-sm font-semibold text-[#4a2825] sm:grid">
             <InfoLine icon={UsersRound} text="One response for the whole household." />
             <InfoLine icon={MapPin} text="Mark only the functions your family can attend." />
             <InfoLine icon={CheckCircle2} text="The hosts receive a clean confirmation." />
           </div>
           <ShareInviteButton />
         </Reveal>
-        <form onSubmit={submit} onInput={updateFamilyCount} className="rounded-[8px] border border-[#8c1323]/14 bg-white p-5 shadow-[0_26px_80px_rgba(43,21,20,.14)] sm:p-8">
+        <form onSubmit={submit} onInput={updateFamilyCount} className="rounded-[8px] border border-[#8c1323]/14 bg-white p-4 shadow-[0_26px_80px_rgba(43,21,20,.14)] sm:p-8">
           <div className="mb-5 rounded-[8px] border border-[#d9b98a] bg-[#fffaf1] p-4 text-center">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#8c1323]">Current count</p>
             <p className="mt-2 font-display text-4xl font-semibold text-ink">{familyCount.adults + familyCount.children} guests</p>
@@ -1066,7 +1032,7 @@ function MotionToggle({ disabled, onToggle }) {
       onClick={onToggle}
       title={disabled ? 'Turn motion on' : 'Reduce motion'}
       aria-label={disabled ? 'Turn motion on' : 'Reduce motion'}
-      className="fixed bottom-4 right-4 z-[70] grid h-12 w-12 place-items-center rounded-full border border-[#f6d88b]/24 bg-[#071423]/78 text-[#f6d88b] shadow-glow backdrop-blur-md transition hover:bg-[#fff8ea]/12 focus:outline-none focus:ring-2 focus:ring-[#f6d88b]/50"
+      className="fixed bottom-4 right-4 z-[70] hidden h-12 w-12 place-items-center rounded-full border border-[#f6d88b]/24 bg-[#071423]/78 text-[#f6d88b] shadow-glow backdrop-blur-md transition hover:bg-[#fff8ea]/12 focus:outline-none focus:ring-2 focus:ring-[#f6d88b]/50 sm:grid"
     >
       {disabled ? <VolumeX className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
     </button>
@@ -1111,6 +1077,7 @@ function MarigoldPhysics({ disabled }) {
 function App() {
   const [opened, setOpened] = useState(() => new URLSearchParams(window.location.search).get('open') === '1')
   const prefersReducedMotion = useReducedMotionPreference()
+  const mobileViewport = useMobileViewport()
   const [motionPaused, setMotionPaused] = useState(false)
   const reducedMotion = prefersReducedMotion || motionPaused
   const guestName = useGuestName()
@@ -1130,18 +1097,14 @@ function App() {
   return (
     <main className="min-h-screen overflow-hidden bg-velvet text-parchment">
       {!opened && <DawatEnvelopeGate onOpened={() => setOpened(true)} reducedMotion={reducedMotion} guestName={guestName} />}
-      <MarigoldPhysics disabled={reducedMotion} />
+      <MarigoldPhysics disabled={reducedMotion || mobileViewport} />
       <MotionToggle disabled={reducedMotion} onToggle={() => setMotionPaused((value) => !value)} />
       <div {...inviteShellProps} className={opened ? '' : 'pointer-events-none select-none'}>
         <HeroPortal />
         <RasamTimeline />
-        <InteractiveGallery />
         <StoryChapters />
-        <RasamPlayground />
         <EventDetails />
-        <ScratchReveal />
         <CountdownHourglass />
-        <SalamiSection />
         <ConfirmInvitation />
         <footer className="bg-[#071423] px-4 py-10 text-center text-sm text-[#fff8ea]/64"><p className="font-display text-3xl text-[#f6d88b]">{wedding.couple}</p><p className="mt-2">A fan-concept dawat inspired by Zanjeerain. {year}</p></footer>
       </div>
