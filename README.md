@@ -18,6 +18,10 @@ The normal URL opens with the sealed invitation gate. Useful preview parameters:
 
 ## Assets
 
-Drama-inspired artwork is stored in `public/assets/zanjeerain`. The original source artwork remains untouched in the external workshop folder.
+Optimized web artwork is stored in `public/assets/zanjeerain`. Original-resolution and legacy assets are preserved in `source-assets` and are not included in the deployed site.
+
+## Confirmation
+
+Copy `.env.example` to `.env` when configuring a real invitation. `VITE_RSVP_WEBHOOK_URL` receives the JSON confirmation; `VITE_WHATSAPP_NUMBER` supplies the host fallback in international format without a leading `+`.
 
 This is an unofficial fan concept and is not affiliated with HUM TV or the performers.

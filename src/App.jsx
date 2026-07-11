@@ -15,6 +15,7 @@ import {
   HeartHandshake,
   MailOpen,
   MapPin,
+  MessageCircle,
   Music2,
   Navigation,
   Palette,
@@ -36,8 +37,9 @@ const wedding = {
   initials: 'S&R',
   dateLabel: '18-20 December 2026',
   venue: 'Khan Haveli, Khyber Pakhtunkhwa',
-  targetDate: '2026-12-20T12:30:00+05:00',
-  webhookUrl: import.meta.env.VITE_RSVP_WEBHOOK_URL || '/api/rsvp',
+  targetDate: '2026-12-18T20:00:00+05:00',
+  webhookUrl: import.meta.env.VITE_RSVP_WEBHOOK_URL || null,
+  whatsappNumber: import.meta.env.VITE_WHATSAPP_NUMBER?.replace(/\D/g, '') || '',
 }
 
 const media = {
@@ -46,7 +48,7 @@ const media = {
     doorway: null,
     hourglass: null,
     mehndi: null,
-    baraat: null,
+    nikkah: null,
     valima: null,
   },
   images: {
@@ -55,7 +57,7 @@ const media = {
     doorwayMobile: asset('assets/zanjeerain/poster_hero.webp'),
     hourglass: asset('assets/zanjeerain/hourglass_duo.webp'),
     mehndi: asset('assets/zanjeerain/event_mehndi.webp'),
-    baraat: asset('assets/zanjeerain/event_nikkah.webp'),
+    nikkah: asset('assets/zanjeerain/event_nikkah.webp'),
     valima: asset('assets/zanjeerain/event_walima.webp'),
     salami: asset('assets/zanjeerain/test_couple.webp'),
     tasbeeh: asset('assets/zanjeerain/tasbeeh_hands.webp'),
@@ -70,32 +72,15 @@ const media = {
 
 const events = [
   {
-    slug: 'mehndi',
-    title: 'Mehndi',
-    urdu: 'مہندی',
-    eyebrow: 'Lanterns, dholki, mountain air',
-    date: 'Friday, 18 December 2026',
-    shortDate: '18 Dec',
-    time: '7:00 PM',
-    venue: 'Upper Courtyard, Khan Haveli',
-    locationHint: 'Lantern path opens after Maghrib',
-    dressCode: 'Mustard, forest green, mirror-work, shawls',
-    mood: 'The haveli courtyard finally sounds like laughter: dholki under cedar trees, marigolds against white stone, and two guarded hearts allowing themselves one bright evening.',
-    note: 'Bring a warm shawl. The mountain air arrives before the dholki slows down.',
-    flow: ['Kehwa welcome', 'Dholki', 'Mehndi rasam', 'Courtyard dinner'],
-    palette: 'from-[#f2a51f] to-[#1f6b45]',
-    accent: '#f2a51f',
-    image: media.images.mehndi,
-    video: media.videos.mehndi,
-  },
-  {
     slug: 'nikkah',
     title: 'Nikkah',
     urdu: 'نکاح',
     eyebrow: 'Qubool hai, amanat, new beginnings',
-    date: 'Saturday, 19 December 2026',
-    shortDate: '19 Dec',
+    date: 'Friday, 18 December 2026',
+    shortDate: '18 Dec',
     time: '8:00 PM',
+    startsAt: '2026-12-18T20:00:00+05:00',
+    endsAt: '2026-12-18T22:30:00+05:00',
     venue: 'White Diwan Hall, Khan Haveli',
     locationHint: 'Enter through the carved northern gate',
     dressCode: 'Deep maroon, midnight black, antique gold',
@@ -104,8 +89,29 @@ const events = [
     flow: ['Family arrival', 'Nikkah', 'Dua and salami', 'Haveli dinner'],
     palette: 'from-[#b0202f] to-[#c99b52]',
     accent: '#b0202f',
-    image: media.images.baraat,
-    video: media.videos.baraat,
+    image: media.images.nikkah,
+    video: media.videos.nikkah,
+  },
+  {
+    slug: 'mehndi',
+    title: 'Mehndi',
+    urdu: 'مہندی',
+    eyebrow: 'Lanterns, dholki, mountain air',
+    date: 'Saturday, 19 December 2026',
+    shortDate: '19 Dec',
+    time: '7:00 PM',
+    startsAt: '2026-12-19T19:00:00+05:00',
+    endsAt: '2026-12-19T23:00:00+05:00',
+    venue: 'Upper Courtyard, Khan Haveli',
+    locationHint: 'Lantern path opens after Maghrib',
+    dressCode: 'Mustard, forest green, mirror-work, shawls',
+    mood: 'Now married, they trade quiet promises for a courtyard full of laughter: dholki under cedar trees, marigolds against white stone, and both families celebrating as one.',
+    note: 'Bring a warm shawl. The mountain air arrives before the dholki slows down.',
+    flow: ['Kehwa welcome', 'Dholki', 'Mehndi rasam', 'Courtyard dinner'],
+    palette: 'from-[#f2a51f] to-[#1f6b45]',
+    accent: '#f2a51f',
+    image: media.images.mehndi,
+    video: media.videos.mehndi,
   },
   {
     slug: 'valima',
@@ -115,6 +121,8 @@ const events = [
     date: 'Sunday, 20 December 2026',
     shortDate: '20 Dec',
     time: '12:30 PM',
+    startsAt: '2026-12-20T12:30:00+05:00',
+    endsAt: '2026-12-20T15:30:00+05:00',
     venue: 'Lower Gardens, Khan Haveli',
     locationHint: 'Follow the white rose path',
     dressCode: 'Ivory, sage, silver, soft blue',
@@ -127,6 +135,26 @@ const events = [
     video: media.videos.valima,
   },
 ]
+
+function toCalendarStamp(value) {
+  return new Date(value).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
+}
+
+function getCalendarUrl(event) {
+  const location = `${event.venue}, Khyber Pakhtunkhwa`
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: `${event.title} | ${wedding.couple}`,
+    dates: `${toCalendarStamp(event.startsAt)}/${toCalendarStamp(event.endsAt)}`,
+    details: `${event.eyebrow}. ${event.locationHint}.`,
+    location,
+  })
+  return `https://calendar.google.com/calendar/render?${params.toString()}`
+}
+
+function getDirectionsUrl(event) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event.venue}, Khyber Pakhtunkhwa`)}`
+}
 
 function VideoLoop({ src, poster, className = '', label, eager = false }) {
   if (!src) {
@@ -226,7 +254,7 @@ function useGuestName() {
   }, [])
 }
 
-function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
+function DawatEnvelopeGate({ onOpening, onOpened, reducedMotion, guestName }) {
   const overlayRef = useRef(null)
   const stageRef = useRef(null)
   const flapRef = useRef(null)
@@ -235,42 +263,46 @@ function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
   const sealRef = useRef(null)
   const glowRef = useRef(null)
   const promptRef = useRef(null)
+  const completionTimerRef = useRef(null)
+  const completedRef = useRef(false)
   const [opening, setOpening] = useState(false)
-  const [readyToEnter, setReadyToEnter] = useState(false)
+
+  const finishOpening = () => {
+    if (completedRef.current) return
+    completedRef.current = true
+    window.clearTimeout(completionTimerRef.current)
+    onOpened()
+  }
+
+  useEffect(() => () => window.clearTimeout(completionTimerRef.current), [])
 
   const openEnvelope = () => {
     if (opening) return
     setOpening(true)
+    onOpening()
     const compact = window.matchMedia('(max-width: 640px)').matches
+    completionTimerRef.current = window.setTimeout(finishOpening, reducedMotion ? 2100 : 4500)
 
     if (reducedMotion) {
       gsap.set(promptRef.current, { opacity: 0 })
       gsap.set(sealRef.current, { opacity: 0 })
       gsap.set(flapRef.current, { rotateX: -150, y: -10, transformOrigin: '50% 0%' })
       gsap.set(cardRef.current, { y: compact ? '-20vh' : '-27vh', opacity: 1, scale: 1 })
-      setReadyToEnter(true)
+      gsap.to(overlayRef.current, { opacity: 0, delay: 1.6, duration: 0.24, onComplete: finishOpening })
       return
     }
 
     gsap
-      .timeline({ defaults: { ease: 'power3.inOut' }, onComplete: () => setReadyToEnter(true) })
+      .timeline({ defaults: { ease: 'power3.inOut' }, onComplete: finishOpening })
       .to(promptRef.current, { opacity: 0, y: 8, duration: 0.3 }, 0)
       .to(sealRef.current, { scale: 0.88, opacity: 0, duration: 0.38, ease: 'power2.out' }, 0.08)
       .to(flapRef.current, { rotateX: -150, y: -12, transformOrigin: '50% 0%', duration: 0.85 }, 0.3)
       .to(pocketRef.current, { y: 10, filter: 'brightness(1.08)', duration: 0.62 }, 0.4)
       .to(glowRef.current, { opacity: 0.55, scale: 1.18, duration: 0.8 }, 0.42)
       .to(cardRef.current, { y: compact ? '-20vh' : '-27vh', opacity: 1, scale: 1, duration: 1.05, ease: 'power3.out' }, 0.62)
-  }
-
-  const enterInvitation = () => {
-    if (!readyToEnter) return
-    if (reducedMotion) {
-      onOpened()
-      return
-    }
-    gsap.timeline({ onComplete: onOpened })
+      .to({}, { duration: 1.65 })
       .to(stageRef.current, { y: -18, scale: 1.025, duration: 0.5, ease: 'power2.in' })
-      .to(overlayRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.72, ease: 'power2.inOut' }, 0.12)
+      .to(overlayRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.72, ease: 'power2.inOut' }, '-=0.45')
   }
 
   return (
@@ -311,15 +343,6 @@ function DawatEnvelopeGate({ onOpened, reducedMotion, guestName }) {
               With duas and the blessings of both families, your presence is requested for the wedding celebrations.
             </p>
             <p className="mt-5 text-xs font-bold uppercase tracking-[0.24em] text-[#9a1630]">{wedding.dateLabel}</p>
-            <button
-              type="button"
-              disabled={!readyToEnter}
-              onClick={enterInvitation}
-              className={`dawat-enter-button ${readyToEnter ? 'is-ready' : ''}`}
-            >
-              <Sparkles className="h-4 w-4" />
-              Enter the celebration
-            </button>
           </div>
 
           <div className="dawat-envelope" aria-hidden="true">
@@ -571,7 +594,7 @@ function StoryChapters() {
             </div>
           </motion.div>
 
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
+          <div className="story-chapter-list grid grid-cols-2 gap-3 lg:grid-cols-1">
             {storyChapters.map((item, index) => (
               <button
                 key={item.title}
@@ -702,6 +725,7 @@ function EventStory({ event, index }) {
   return (
     <article id={`event-${event.slug}`} data-particle={event.slug} className="relative scroll-mt-6 overflow-hidden px-4 py-14 sm:py-24">
       <div className="absolute inset-0 opacity-80" style={{ background: `radial-gradient(circle at ${reverse ? '72%' : '28%'} 35%, ${event.accent}33, transparent 28rem)` }} />
+      <div className={`event-motif event-motif-${event.slug}`} aria-hidden="true">{[0, 1, 2, 3, 4, 5, 6].map((item) => <span key={item} />)}</div>
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
         <Reveal className={reverse ? 'lg:order-2' : ''}>
           <p className="text-xs font-bold uppercase tracking-[0.42em] text-marigold">{event.eyebrow}</p>
@@ -726,6 +750,10 @@ function EventStory({ event, index }) {
             <InfoPill icon={Clock} label={event.time} />
             <InfoPill icon={MapPin} label={event.venue} />
             <InfoPill icon={Navigation} label={event.locationHint} />
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <a href={getCalendarUrl(event)} target="_blank" rel="noreferrer" className="event-utility-link"><CalendarDays className="h-4 w-4" />Add to calendar</a>
+            <a href={getDirectionsUrl(event)} target="_blank" rel="noreferrer" className="event-utility-link"><Navigation className="h-4 w-4" />Directions</a>
           </div>
           <div className="mt-8 hidden gap-5 sm:grid md:grid-cols-[0.9fr_1.1fr]">
             <DetailBox icon={Palette} title="Dress mood" text={event.dressCode} />
@@ -782,7 +810,7 @@ function CountdownHourglass() {
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(242,165,31,.18),transparent_34rem)]" />
       <div className="relative mx-auto max-w-7xl">
-        <Reveal className="mb-7 text-center sm:mb-10"><p className="text-xs font-bold uppercase tracking-[0.42em] text-marigold">Countdown</p><AnimatedWords text="Until Khan Haveli opens its doors" className="mt-4 font-display text-4xl font-semibold leading-none text-parchment sm:text-7xl" /></Reveal>
+        <Reveal className="mb-7 text-center sm:mb-10"><p className="text-xs font-bold uppercase tracking-[0.42em] text-marigold">Countdown</p><AnimatedWords text="Until their Nikkah begins" className="mt-4 font-display text-4xl font-semibold leading-none text-parchment sm:text-7xl" /></Reveal>
         <div
           className="hourglass-tilt relative mx-auto aspect-[5/4] max-w-3xl overflow-hidden rounded-[8px] border border-[#f6d88b]/24 bg-[#071423] shadow-gold-soft sm:aspect-[4/5]"
           style={{ transform: `perspective(900px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)` }}
@@ -952,9 +980,21 @@ function ShareInviteButton() {
   )
 }
 
-function ConfirmInvitation() {
+function getWhatsAppConfirmationUrl(payload) {
+  const functions = payload.attending.length ? payload.attending.join(', ') : 'Unable to attend'
+  const text = [
+    `Assalam-o-Alaikum, this is ${payload.headOfFamily}.`,
+    `Confirming for ${wedding.couple}'s wedding invitation.`,
+    `Adults: ${payload.adults} | Children: ${payload.children}`,
+    `Functions: ${functions}`,
+  ].join('\n')
+  return `https://wa.me/${wedding.whatsappNumber}?text=${encodeURIComponent(text)}`
+}
+
+function ConfirmInvitation({ guestName }) {
   const [status, setStatus] = useState('idle')
   const [message, setMessage] = useState('')
+  const [fallbackUrl, setFallbackUrl] = useState('')
   const [familyCount, setFamilyCount] = useState({ adults: 2, children: 0 })
 
   const updateFamilyCount = (event) => {
@@ -969,12 +1009,16 @@ function ConfirmInvitation() {
     event.preventDefault(); setStatus('submitting')
     const form = new FormData(event.currentTarget)
     const payload = { headOfFamily: form.get('headOfFamily'), adults: Number(form.get('adults')), children: Number(form.get('children')), attending: form.getAll('attending'), submittedAt: new Date().toISOString(), couple: wedding.couple }
+    setFallbackUrl('')
     try {
+      if (!wedding.webhookUrl) throw new Error('Webhook not configured')
       const response = await fetch(wedding.webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!response.ok) throw new Error('Confirmation failed')
       setStatus('success'); setMessage('Shukriya. Your invitation confirmation has been received.'); event.currentTarget.reset()
     } catch {
-      setStatus('error'); setMessage(wedding.webhookUrl === '/api/rsvp' ? 'Confirmation is not connected yet. Please share your response with the host family.' : 'We could not send the confirmation right now. Please try again in a moment.')
+      setStatus('error')
+      setMessage('The online confirmation could not be sent. Your response is ready to share with the host family on WhatsApp.')
+      setFallbackUrl(getWhatsAppConfirmationUrl(payload))
     }
   }
   return (
@@ -997,7 +1041,7 @@ function ConfirmInvitation() {
             <p className="mt-2 font-display text-4xl font-semibold text-ink">{familyCount.adults + familyCount.children} guests</p>
           </div>
           <div className="grid gap-5">
-            <Field label="Head of Family" name="headOfFamily" type="text" placeholder="e.g. Mr. Faisal Ahmed" />
+            <Field label="Head of Family" name="headOfFamily" type="text" placeholder="e.g. Mr. Faisal Ahmed" defaultValue={guestName !== 'Family' ? guestName : undefined} />
             <div className="grid gap-5 sm:grid-cols-2"><Field label="Adults" name="adults" type="number" defaultValue="2" /><Field label="Children" name="children" type="number" defaultValue="0" /></div>
             <fieldset className="grid gap-3">
               <legend className="text-sm font-bold uppercase tracking-[0.18em] text-[#8c1323]">Functions attending</legend>
@@ -1006,6 +1050,7 @@ function ConfirmInvitation() {
           </div>
           <button type="submit" disabled={status === 'submitting'} className="mt-7 inline-flex h-14 w-full items-center justify-center gap-3 rounded-[6px] bg-[#8c1323] px-5 text-sm font-bold uppercase tracking-[0.2em] text-parchment shadow-[0_18px_40px_rgba(140,19,35,.28)] transition hover:bg-[#6f0d19] focus:outline-none focus:ring-4 focus:ring-[#8c1323]/20 disabled:cursor-wait disabled:opacity-70"><Send className="h-5 w-5" />{status === 'submitting' ? 'Confirming' : 'Confirm Invitation'}</button>
           {message && <p className={`mt-4 rounded-[6px] px-4 py-3 text-sm font-semibold ${status === 'success' ? 'bg-[#1f6b45]/10 text-[#1f6b45]' : 'bg-[#8c1323]/10 text-[#8c1323]'}`}>{message}</p>}
+          {fallbackUrl && <a href={fallbackUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex h-12 w-full items-center justify-center gap-3 rounded-[6px] bg-[#1f6b45] px-4 text-sm font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#175538]"><MessageCircle className="h-5 w-5" />Confirm via WhatsApp</a>}
         </form>
       </div>
     </section>
@@ -1048,7 +1093,7 @@ function MarigoldPhysics({ disabled }) {
     const themes = {
       marigold: { colors: ['#f2a51f', '#f7c948', '#e97818', '#ffb22e'], shape: 'petal', alpha: 0.82 },
       mehndi: { colors: ['#f2a51f', '#f7c948', '#1f6b45', '#69a56b'], shape: 'petal', alpha: 0.82 },
-      baraat: { colors: ['#b0202f', '#8c1323', '#c99b52', '#f6d88b'], shape: 'petal', alpha: 0.78 },
+      nikkah: { colors: ['#b0202f', '#8c1323', '#c99b52', '#f6d88b'], shape: 'petal', alpha: 0.78 },
       valima: { colors: ['#fff8ea', '#d9e2df', '#c7bfb2', '#f5d6dd'], shape: 'confetti', alpha: 0.72 },
       glitter: { colors: ['#fff0b8', '#f6d88b', '#c99b52', '#ffffff'], shape: 'spark', alpha: 0.86 },
       countdown: { colors: ['#f6d88b', '#f2a51f', '#fff8ea', '#c99b52'], shape: 'spark', alpha: 0.82 },
@@ -1071,6 +1116,7 @@ function MarigoldPhysics({ disabled }) {
 
 function App() {
   const [opened, setOpened] = useState(() => new URLSearchParams(window.location.search).get('open') === '1')
+  const [inviteMounted, setInviteMounted] = useState(opened)
   const prefersReducedMotion = useReducedMotionPreference()
   const mobileViewport = useMobileViewport()
   const [motionPaused, setMotionPaused] = useState(false)
@@ -1091,18 +1137,22 @@ function App() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-velvet text-parchment">
-      {!opened && <DawatEnvelopeGate onOpened={() => setOpened(true)} reducedMotion={reducedMotion} guestName={guestName} />}
-      <MarigoldPhysics disabled={reducedMotion || mobileViewport} />
-      <MotionToggle disabled={reducedMotion} onToggle={() => setMotionPaused((value) => !value)} />
-      <div {...inviteShellProps} className={opened ? '' : 'pointer-events-none select-none'}>
-        <HeroPortal />
-        <RasamTimeline />
-        <StoryChapters />
-        <EventDetails />
-        <CountdownHourglass />
-        <ConfirmInvitation />
-        <footer className="bg-[#071423] px-4 py-10 text-center text-sm text-[#fff8ea]/64"><p className="font-display text-3xl text-[#f6d88b]">{wedding.couple}</p><p className="mt-2">A fan-concept dawat inspired by Zanjeerain. {year}</p></footer>
-      </div>
+      {!opened && <DawatEnvelopeGate onOpening={() => setInviteMounted(true)} onOpened={() => setOpened(true)} reducedMotion={reducedMotion} guestName={guestName} />}
+      {inviteMounted && (
+        <>
+          <MarigoldPhysics disabled={reducedMotion || mobileViewport} />
+          <MotionToggle disabled={reducedMotion} onToggle={() => setMotionPaused((value) => !value)} />
+          <div {...inviteShellProps} className={opened ? '' : 'pointer-events-none select-none'}>
+            <HeroPortal />
+            <RasamTimeline />
+            <StoryChapters />
+            <EventDetails />
+            <CountdownHourglass />
+            <ConfirmInvitation guestName={guestName} />
+            <footer className="bg-[#071423] px-4 py-10 text-center text-sm text-[#fff8ea]/64"><p className="font-display text-3xl text-[#f6d88b]">{wedding.couple}</p><p className="mt-2">A fan-concept dawat inspired by Zanjeerain. {year}</p></footer>
+          </div>
+        </>
+      )}
     </main>
   )
 }

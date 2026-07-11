@@ -161,6 +161,72 @@ button {
   letter-spacing: 0.14em;
 }
 
+.event-utility-link {
+  display: inline-flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border: 1px solid rgba(246, 216, 139, 0.24);
+  border-radius: 6px;
+  background: rgba(255, 248, 234, 0.07);
+  padding: 0.7rem;
+  color: rgba(255, 248, 234, 0.86);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.event-utility-link:hover {
+  border-color: rgba(246, 216, 139, 0.62);
+  background: rgba(246, 216, 139, 0.12);
+  color: #fff8ea;
+}
+
+.event-motif {
+  position: absolute;
+  left: 50%;
+  top: 0.7rem;
+  z-index: 1;
+  display: flex;
+  transform: translateX(-50%);
+  gap: 0.55rem;
+  opacity: 0.72;
+}
+
+.event-motif span {
+  width: 0.42rem;
+  height: 0.76rem;
+  border-radius: 80% 20% 72% 28%;
+  background: #c99b52;
+  transform: rotate(34deg);
+}
+
+.event-motif-nikkah span:nth-child(2n) {
+  background: #b0202f;
+  transform: rotate(-34deg);
+}
+
+.event-motif-mehndi span:nth-child(2n) {
+  background: #1f6b45;
+  transform: rotate(-34deg);
+}
+
+.event-motif-mehndi span:nth-child(2n + 1) {
+  background: #f2a51f;
+}
+
+.event-motif-valima span {
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 999px;
+  background: #fff8ea;
+  box-shadow: 0 0 10px rgba(255, 248, 234, 0.42);
+}
+
 .dawat-gate-stage {
   position: relative;
   width: min(calc(100vw - 3rem), 52rem);
@@ -296,38 +362,6 @@ button {
 
 .dawat-wax-seal:disabled {
   pointer-events: none;
-}
-
-.dawat-enter-button {
-  display: flex;
-  width: fit-content;
-  margin: 1rem auto 0;
-  align-items: center;
-  gap: 0.55rem;
-  border: 1px solid rgba(140, 19, 35, 0.32);
-  border-radius: 999px;
-  background: #2c0b12;
-  padding: 0.7rem 1rem;
-  color: #fff0c5;
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  box-shadow: 0 12px 30px rgba(44, 11, 18, 0.2);
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(8px);
-  transition: opacity 0.45s ease, transform 0.45s ease, background 0.2s ease;
-}
-
-.dawat-enter-button.is-ready {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
-.dawat-enter-button.is-ready:hover {
-  background: #8c1323;
 }
 
 .fairy-light-string {
@@ -672,17 +706,29 @@ button {
     right: 1rem;
   }
 
+  .story-chapter-list {
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .story-chapter-list::-webkit-scrollbar {
+    display: none;
+  }
+
   .story-chapter-button {
-    grid-template-columns: 2.35rem 1fr;
-    min-width: 0;
-    min-height: 4.5rem;
-    gap: 0.65rem;
-    padding: 0.7rem;
+    flex: 0 0 3.35rem;
+    width: 3.35rem;
+    min-width: 3.35rem;
+    min-height: 3.35rem;
+    grid-template-columns: 1fr;
+    place-items: center;
+    padding: 0.4rem;
   }
 
   .story-chapter-button > span:last-child {
-    min-width: 0;
-    overflow: hidden;
+    display: none;
   }
 
   .story-chapter-number {
@@ -692,6 +738,11 @@ button {
 
   .story-chapter-copy {
     display: none;
+  }
+
+  .story-chapter-button:hover,
+  .story-chapter-button.is-active {
+    transform: translateY(-2px);
   }
 }
 
