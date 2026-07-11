@@ -57,7 +57,7 @@ const media = {
     doorway: asset('assets/zanjeerain/og_poster.webp'),
     doorwayMobile: asset('assets/zanjeerain/poster_hero.webp'),
     hourglass: asset('assets/zanjeerain/hourglass_duo.webp'),
-    mehndi: asset('assets/zanjeerain/event_mehndi.webp'),
+    mehndi: asset('assets/zanjeerain/event_mehndi_modest.webp'),
     nikkah: asset('assets/zanjeerain/event_nikkah.webp'),
     valima: asset('assets/zanjeerain/event_walima.webp'),
     salami: asset('assets/zanjeerain/test_couple.webp'),
